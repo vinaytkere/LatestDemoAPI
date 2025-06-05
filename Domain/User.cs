@@ -4,5 +4,6 @@ namespace Domain
     {
         public string UserName { get; set; } = default!;
         public string PasswordHash { get; set; } = default!;
+        public string Role { get; set; } = "User";
     }
 }

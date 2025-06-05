@@ -13,6 +13,7 @@
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CreateAddressCommand command)
         {
             var result = await _mediator.Send(command);
@@ -20,6 +21,7 @@
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(Guid id, UpdateAddressCommand command)
         {
             if (id != command.Id)
@@ -30,6 +32,7 @@
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteAddressCommand(id));

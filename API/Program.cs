@@ -59,9 +59,9 @@ var app = builder.Build();
 // 👇 Add this before UseAuthorization()
 app.UseCors("AllowAll");
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
+            var admin = new User { UserName = "admin", Role = "Admin" };
+            admin.PasswordHash = hasher.HashPassword(admin, "admin");
+            db.Users.Add(admin);
 
     try
     {
