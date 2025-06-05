@@ -3,6 +3,10 @@ using Domain;
 using Moq;
 using FluentAssertions;
 using Bogus;
+using static Application.Interfaces.IRepository;
+using Microsoft.AspNetCore.Identity;
+using Application.Interfaces;
+using System.Linq.Expressions;
 
 namespace Tests
 {

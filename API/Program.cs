@@ -1,4 +1,6 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using Microsoft.AspNetCore.Identity;
+
+var builder = WebApplication.CreateBuilder(args);
 
 // Define CORS policy
 builder.Services.AddCors(options =>
