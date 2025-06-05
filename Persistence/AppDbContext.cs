@@ -5,6 +5,7 @@
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<Address> Addresses { get; set; }
+        public DbSet<User> Users { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

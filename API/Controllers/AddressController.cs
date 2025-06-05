@@ -2,6 +2,7 @@
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AddressController : ControllerBase
     {
         private readonly IMediator _mediator;
