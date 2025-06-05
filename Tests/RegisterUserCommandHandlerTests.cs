@@ -2,6 +2,8 @@ using Application.Features.Auth.Commands;
 using Domain;
 using Moq;
 using FluentAssertions;
+using static Application.Interfaces.IRepository;
+using Microsoft.AspNetCore.Identity;
 
 namespace Tests
 {

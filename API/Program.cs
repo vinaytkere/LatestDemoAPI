@@ -58,44 +58,48 @@ var app = builder.Build();
 
 // 👇 Add this before UseAuthorization()
 app.UseCors("AllowAll");
+var scopeFactory = app.Services.GetService<IServiceScopeFactory>();
+var scope = scopeFactory.CreateScope();
+var services = app.Services;
+var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            var admin = new User { UserName = "admin", Role = "Admin" };
-            admin.PasswordHash = hasher.HashPassword(admin, "admin");
-            db.Users.Add(admin);
 
-    try
+var hasher = new PasswordHasher<User>();
+var admin = new User { UserName = "admin", Role = "Admin" };
+admin.PasswordHash = hasher.HashPassword(admin, "admin");
+db.Users.Add(admin);
+
+try
+{
+
+    // Apply pending migrations automatically (creates DB if not exists)
+    db.Database.Migrate();
+
+    // Optional: Seed data if DB is empty
+    if (!db.Addresses.Any())
     {
-        var db = services.GetRequiredService<AppDbContext>();
-
-        // Apply pending migrations automatically (creates DB if not exists)
-        db.Database.Migrate();
-
-        // Optional: Seed data if DB is empty
-        if (!db.Addresses.Any())
-        {
-            //var seed = services.GetRequiredService<Seed>();
-            //var fakeAddresses = seed.GenerateFakeAddresses(10);
-            //db.AddRange(fakeAddresses);
-            //db.SaveChanges();
-            var seed = services.GetRequiredService<Seed>();
-            db.Addresses.RemoveRange(db.Addresses);
-            db.AddRange(seed.GenerateFakeAddresses(100));
-            db.SaveChanges();
-        }
-
-        if (!db.Users.Any())
-        {
-            var hasher = services.GetRequiredService<IPasswordHasher<User>>();
-            var user = new User { UserName = "testuser" };
-            user.PasswordHash = hasher.HashPassword(user, "Pa$$w0rd");
-            db.Users.Add(user);
-            db.SaveChanges();
-        }
+        //var seed = services.GetRequiredService<Seed>();
+        //var fakeAddresses = seed.GenerateFakeAddresses(10);
+        //db.AddRange(fakeAddresses);
+        //db.SaveChanges();
+        var seed = services.GetRequiredService<Seed>();
+        db.Addresses.RemoveRange(db.Addresses);
+        db.AddRange(seed.GenerateFakeAddresses(100));
+        db.SaveChanges();
     }
-    catch (Exception ex)
+
+    if (!db.Users.Any())
     {
-        Console.WriteLine($"Database migration or seeding failed: {ex.Message}");
+        var hasher1 = services.GetRequiredService<IPasswordHasher<User>>();
+        var user = new User { UserName = "testuser" };
+        user.PasswordHash = hasher1.HashPassword(user, "Pa$$w0rd");
+        db.Users.Add(user);
+        db.SaveChanges();
     }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Database migration or seeding failed: {ex.Message}");
 }
 
 
