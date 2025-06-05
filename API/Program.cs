@@ -20,6 +20,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // 3. JWT Authentication (combined events + validation)
 var jwtSection = builder.Configuration.GetSection("Jwt");
+Console.WriteLine("🔑 JWT Key: " + jwtSection["Key"]);
+Console.WriteLine("🔑 JWT Key Length: " + jwtSection["Key"]?.Length);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -45,7 +47,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             OnForbidden = context =>
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                return context.Response.WriteAsync("You do not have access to this resource");
+                return context.Response.WriteAsync("You cannot delete");
             }
         };
 
