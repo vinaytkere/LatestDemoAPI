@@ -15,7 +15,7 @@ namespace API.Controllers
         public async Task<IActionResult> Login(LoginCommand command)
         {
             var result = await _mediator.Send(command);
-            return result.IsSuccess ? Ok(result.Value) : Unauthorized();
+            return result.IsSuccess ? Ok(result.Value) : Unauthorized(result.Error);
         }
 
         [HttpPost("register")]
