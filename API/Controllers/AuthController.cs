@@ -11,8 +11,9 @@ namespace API.Controllers
             _mediator = mediator;
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginCommand command)
+        [HttpPost("token")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GenerateToken(LoginCommand command)
         {
             var result = await _mediator.Send(command);
             return result.IsSuccess ? Ok(result.Value) : Unauthorized(result.Error);
