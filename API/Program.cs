@@ -2,23 +2,28 @@
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Define CORS policy
+// 1. CORS policy
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
-    {
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+              .AllowAnyHeader());
 });
 
+// 2. Database context (SQL Server)
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
         sqlOptions => sqlOptions.EnableRetryOnFailure()
     ));
 
+// 3. JWT Authentication (combined events + validation)
+var jwtSection = builder.Configuration.GetSection("Jwt");
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        // 3a. Event handlers for custom 401/403 messages
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
@@ -43,6 +48,23 @@ builder.Services.AddDbContext<AppDbContext>(options =>
                 return context.Response.WriteAsync("You do not have access to this resource");
             }
         };
+
+        // 3b. How to validate incoming JWTs
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSection["Issuer"],
+            ValidAudience = jwtSection["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection["Key"]!))
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// 4. Swagger / OpenAPI (security definitions once)
 builder.Services.AddSwaggerGen(c =>
 {
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -70,91 +92,26 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+// 5. AutoMapper, FluentValidation, MediatR
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAddressCommandValidator>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateAddressCommand>());
 
-// Add services to the container.
-
-
-
+// 6. Scoped services & Identity
 builder.Services.AddScoped<Seed>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-
-var jwtSection = builder.Configuration.GetSection("Jwt");
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSection["Issuer"],
-            ValidAudience = jwtSection["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection["Key"]!))
-        };
-    });
-
-builder.Services.AddAuthorization();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// 👇 Add this before UseAuthorization()
+// 7. CORS & pipeline
 app.UseCors("AllowAll");
-var scopeFactory = app.Services.GetService<IServiceScopeFactory>();
-var scope = scopeFactory.CreateScope();
-var services = app.Services;
-var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-
-var hasher = new PasswordHasher<User>();
-var admin = new User { UserName = "admin", Role = "Admin" };
-admin.PasswordHash = hasher.HashPassword(admin, "admin");
-db.Users.Add(admin);
-
-try
-{
-
-    // Apply pending migrations automatically (creates DB if not exists)
-    db.Database.Migrate();
-
-    // Optional: Seed data if DB is empty
-    if (!db.Addresses.Any())
-    {
-        //var seed = services.GetRequiredService<Seed>();
-        //var fakeAddresses = seed.GenerateFakeAddresses(10);
-        //db.AddRange(fakeAddresses);
-        //db.SaveChanges();
-        var seed = services.GetRequiredService<Seed>();
-        db.Addresses.RemoveRange(db.Addresses);
-        db.AddRange(seed.GenerateFakeAddresses(100));
-        db.SaveChanges();
-    }
-
-    if (!db.Users.Any())
-    {
-        var hasher1 = services.GetRequiredService<IPasswordHasher<User>>();
-        var user = new User { UserName = "testuser" };
-        user.PasswordHash = hasher1.HashPassword(user, "Pa$$w0rd");
-        db.Users.Add(user);
-        db.SaveChanges();
-    }
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Database migration or seeding failed: {ex.Message}");
-}
-
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -164,9 +121,47 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();
+
+// 8. Seeding & Migrations
+using (var scope = app.Services.CreateScope())
+{
+    var servicesProvider = scope.ServiceProvider;
+    var db = servicesProvider.GetRequiredService<AppDbContext>();
+    var hasher = servicesProvider.GetRequiredService<IPasswordHasher<User>>();
+
+    try
+    {
+        db.Database.Migrate();
+
+        // Only seed if no users exist
+        if (!db.Users.Any())
+        {
+            var admin = new User { UserName = "admin", Role = "Admin" };
+            admin.PasswordHash = hasher.HashPassword(admin, "admin");
+            db.Users.Add(admin);
+
+            var testUser = new User { UserName = "testuser" };
+            testUser.PasswordHash = hasher.HashPassword(testUser, "Pa$$w0rd");
+            db.Users.Add(testUser);
+
+            db.SaveChanges();
+        }
+
+        // Only seed addresses if none exist
+        if (!db.Addresses.Any())
+        {
+            var seed = servicesProvider.GetRequiredService<Seed>();
+            db.AddRange(seed.GenerateFakeAddresses(100));
+            db.SaveChanges();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Database migration or seeding failed: {ex.Message}");
+    }
+}
 
 app.Run();
