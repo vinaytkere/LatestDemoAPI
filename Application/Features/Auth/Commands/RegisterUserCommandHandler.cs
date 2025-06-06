@@ -13,6 +13,10 @@ namespace Application.Features.Auth.Commands
 
         public async Task<Result<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
+            var exists = (await _repository.FindAsync(u => u.UserName == request.Username)).Any();
+            if (exists)
+                return Result<Guid>.Failure("User already exists");
+
             var user = new User { UserName = request.Username };
             user.PasswordHash = _hasher.HashPassword(user, request.Password);
             await _repository.AddAsync(user);

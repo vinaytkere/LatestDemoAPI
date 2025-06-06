@@ -21,5 +21,21 @@ namespace Tests
             result.Errors.Should().Contain(e => e.PropertyName == "Username");
             result.Errors.Should().Contain(e => e.PropertyName == "Password");
         }
+
+        [Fact]
+        public async Task LoginValidator_ShouldFail_WhenTooShort()
+        {
+            // Arrange
+            var command = new LoginCommand { Username = "ab", Password = "12345" };
+            var validator = new LoginCommandValidator();
+
+            // Act
+            var result = await validator.ValidateAsync(command);
+
+            // Assert
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().Contain(e => e.PropertyName == "Username");
+            result.Errors.Should().Contain(e => e.PropertyName == "Password");
+        }
     }
 }
