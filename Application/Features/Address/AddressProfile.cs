@@ -1,7 +1,13 @@
-﻿namespace Application.Features.Address
+﻿/// <summary>
+/// AutoMapper profile configuration for address mappings.
+/// </summary>
+namespace Application.Features.Address
 {
     public class AddressProfile : Profile
     {
+        /// <summary>
+        /// Configure the mapping rules for address objects.
+        /// </summary>
         public AddressProfile()
         {
             CreateMap<Domain.Address, AddressDto>();

@@ -1,17 +1,28 @@
-﻿namespace API.Controllers
+﻿/// <summary>
+/// Endpoints for managing addresses.
+/// </summary>
+namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AddressController : ControllerBase
     {
         private readonly IMediator _mediator;
 
+        /// <summary>
+        /// Injects the mediator instance.
+        /// </summary>
         public AddressController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+        /// <summary>
+        /// Creates a new address (Admin only).
+        /// </summary>
         public async Task<IActionResult> Create(CreateAddressCommand command)
         {
             var result = await _mediator.Send(command);
@@ -19,6 +30,10 @@
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        /// <summary>
+        /// Updates an existing address (Admin only).
+        /// </summary>
         public async Task<IActionResult> Update(Guid id, UpdateAddressCommand command)
         {
             if (id != command.Id)
@@ -29,6 +44,10 @@
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        /// <summary>
+        /// Deletes an address (Admin only).
+        /// </summary>
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteAddressCommand(id));
@@ -36,6 +55,9 @@
         }
 
         [HttpGet("{id}")]
+        /// <summary>
+        /// Retrieves an address by id.
+        /// </summary>
         public async Task<IActionResult> GetById(Guid id)
         {
             var address = await _mediator.Send(new GetAddressByIdQuery(id));
@@ -43,6 +65,9 @@
         }
 
         [HttpGet]
+        /// <summary>
+        /// Retrieves a paged list of addresses.
+        /// </summary>
         public async Task<IActionResult> GetAll(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
