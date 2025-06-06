@@ -1,3 +1,6 @@
+/// <summary>
+/// Handles user login and token issuance.
+/// </summary>
 namespace Application.Features.Auth.Commands
 {
     public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<string>>
@@ -6,6 +9,9 @@ namespace Application.Features.Auth.Commands
         private readonly IPasswordHasher<User> _hasher;
         private readonly IJwtTokenGenerator _tokenGenerator;
 
+        /// <summary>
+        /// Constructs the handler with required services.
+        /// </summary>
         public LoginCommandHandler(
             IRepository<User> repository,
             IPasswordHasher<User> hasher,
@@ -16,6 +22,9 @@ namespace Application.Features.Auth.Commands
             _tokenGenerator = tokenGenerator;
         }
 
+        /// <summary>
+        /// Validates credentials and returns a JWT on success.
+        /// </summary>
         public async Task<Result<string>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             var user = (await _repository.FindAsync(u => u.UserName == request.Username)).FirstOrDefault();
@@ -31,3 +40,4 @@ namespace Application.Features.Auth.Commands
         }
     }
 }
+

@@ -1,16 +1,25 @@
-﻿namespace Application.Features.Address.Queries
+﻿/// <summary>
+/// Handles retrieval of paged address lists.
+/// </summary>
+namespace Application.Features.Address.Queries
 {
     public class GetAllAddressesQueryHandler : IRequestHandler<GetAllAddressesQuery, PaginatedResult<AddressDto>>
     {
         private readonly IRepository<Domain.Address> _repository;
         private readonly IMapper _mapper;
 
+        /// <summary>
+        /// Sets up the handler with required services.
+        /// </summary>
         public GetAllAddressesQueryHandler(IRepository<Domain.Address> repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Retrieves a page of addresses optionally filtered by city/state.
+        /// </summary>
         public async Task<PaginatedResult<AddressDto>> Handle(GetAllAddressesQuery request, CancellationToken cancellationToken)
         {
             var all = await _repository.GetAllAsync();
@@ -41,3 +50,4 @@
         }
     }
 }
+

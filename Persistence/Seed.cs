@@ -1,7 +1,13 @@
-﻿namespace Persistence
+﻿/// <summary>
+/// Provides methods for seeding sample data.
+/// </summary>
+namespace Persistence
 {
     public class Seed
     {
+        /// <summary>
+        /// Generates a list of fake address entities for testing.
+        /// </summary>
         public List<Address> GenerateFakeAddresses(int count = 100)
         {
             var addressFaker = new Faker<Address>()

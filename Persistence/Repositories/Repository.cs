@@ -1,46 +1,73 @@
-﻿namespace Persistence.Repositories
+﻿/// <summary>
+/// Generic repository implementation using Entity Framework Core.
+/// </summary>
+namespace Persistence.Repositories
 {
     public class Repository<T> : IRepository<T> where T : class
     {
         private readonly AppDbContext _context;
         private readonly DbSet<T> _dbSet;
 
+        /// <summary>
+        /// Creates a new repository for a given context.
+        /// </summary>
         public Repository(AppDbContext context)
         {
             _context = context;
             _dbSet = _context.Set<T>();
         }
 
+        /// <summary>
+        /// Fetches an entity by its id.
+        /// </summary>
         public async Task<T?> GetByIdAsync(Guid id)
         {
             return await _dbSet.FindAsync(id);
         }
 
+        /// <summary>
+        /// Returns all entities.
+        /// </summary>
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
         }
 
+        /// <summary>
+        /// Returns entities matching a predicate.
+        /// </summary>
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
             return await _dbSet.Where(predicate).ToListAsync();
         }
 
+        /// <summary>
+        /// Adds a new entity to the context.
+        /// </summary>
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
         }
 
+        /// <summary>
+        /// Updates an entity in the context.
+        /// </summary>
         public void Update(T entity)
         {
             _dbSet.Update(entity);
         }
 
+        /// <summary>
+        /// Removes an entity from the context.
+        /// </summary>
         public void Remove(T entity)
         {
             _dbSet.Remove(entity);
         }
 
+        /// <summary>
+        /// Persists changes to the database.
+        /// </summary>
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

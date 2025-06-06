@@ -1,3 +1,6 @@
+/// <summary>
+/// Handles user registration logic.
+/// </summary>
 namespace Application.Features.Auth.Commands
 {
     public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, Result<Guid>>
@@ -5,12 +8,18 @@ namespace Application.Features.Auth.Commands
         private readonly IRepository<User> _repository;
         private readonly IPasswordHasher<User> _hasher;
 
+        /// <summary>
+        /// Creates a new instance using the repository and password hasher.
+        /// </summary>
         public RegisterUserCommandHandler(IRepository<User> repository, IPasswordHasher<User> hasher)
         {
             _repository = repository;
             _hasher = hasher;
         }
 
+        /// <summary>
+        /// Registers the new user if the username is unique.
+        /// </summary>
         public async Task<Result<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
             var exists = (await _repository.FindAsync(u => u.UserName == request.Username)).Any();
@@ -25,3 +34,4 @@ namespace Application.Features.Auth.Commands
         }
     }
 }
+

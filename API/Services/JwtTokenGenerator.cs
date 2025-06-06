@@ -5,17 +5,26 @@ using Microsoft.IdentityModel.Tokens;
 using Application.Interfaces;
 using Domain;
 
+/// <summary>
+/// Concrete implementation for creating JWT tokens.
+/// </summary>
 namespace API.Services
 {
     public class JwtTokenGenerator : IJwtTokenGenerator
     {
         private readonly IConfiguration _config;
 
+        /// <summary>
+        /// Initializes the generator with configuration settings.
+        /// </summary>
         public JwtTokenGenerator(IConfiguration config)
         {
             _config = config;
         }
 
+        /// <summary>
+        /// Generates a signed JWT containing the user information.
+        /// </summary>
         public string GenerateToken(User user)
         {
             var jwtSection = _config.GetSection("Jwt");
@@ -41,3 +50,4 @@ namespace API.Services
         }
     }
 }
+
