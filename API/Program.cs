@@ -47,7 +47,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             OnForbidden = context =>
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                return context.Response.WriteAsync("You cannot delete");
+                return context.Response.WriteAsync("You are not authorized to perform this action");
             }
         };
 

@@ -3,25 +3,6 @@ using Domain;
 using Moq;
 using FluentAssertions;
 using System.Linq.Expressions;
-
-        [Fact]
-        public async Task Register_ShouldFail_WhenUserExists()
-        {
-            // Arrange
-            var command = new RegisterUserCommand { Username = "existing", Password = "pass123" };
-            _repoMock.Setup(r => r.FindAsync(It.IsAny<Expression<Func<User, bool>>>() ))
-                .ReturnsAsync(new List<User> { new User() });
-
-            var handler = new RegisterUserCommandHandler(_repoMock.Object, _hasherMock.Object);
-
-            // Act
-            var result = await handler.Handle(command, CancellationToken.None);
-
-            // Assert
-            result.IsSuccess.Should().BeFalse();
-            result.Error.Should().Be("User already exists");
-            _repoMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Never);
-        }
 using static Application.Interfaces.IRepository;
 using Microsoft.AspNetCore.Identity;
 
@@ -56,6 +37,25 @@ namespace Tests
             added!.UserName.Should().Be(command.Username);
             added.PasswordHash.Should().Be("hashed");
             added.Role.Should().Be("User");
+        }
+
+        [Fact]
+        public async Task Register_ShouldFail_WhenUserExists()
+        {
+            // Arrange
+            var command = new RegisterUserCommand { Username = "existing", Password = "pass123" };
+            _repoMock.Setup(r => r.FindAsync(It.IsAny<Expression<Func<User, bool>>>()))
+                .ReturnsAsync(new List<User> { new User() });
+
+            var handler = new RegisterUserCommandHandler(_repoMock.Object, _hasherMock.Object);
+
+            // Act
+            var result = await handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            result.IsSuccess.Should().BeFalse();
+            result.Error.Should().Be("User already exists");
+            _repoMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Never);
         }
     }
 }
