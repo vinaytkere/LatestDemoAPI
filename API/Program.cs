@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,12 +12,15 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
-// 2. Database context (SQL Server)
+// 2. Database context (SQLite)
+// NOTE: specify the migrations assembly so EF knows where migrations live
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
+    options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlOptions => sqlOptions.EnableRetryOnFailure()
-    ));
+        sqliteOptions =>
+        {
+            sqliteOptions.MigrationsAssembly("Persistence"); // <-- set to your migrations project name
+        }));
 
 // 3. JWT Authentication (combined events + validation)
 var jwtSection = builder.Configuration.GetSection("Jwt");
