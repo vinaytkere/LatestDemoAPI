@@ -15,12 +15,7 @@ builder.Services.AddCors(options =>
 // 2. Database context (SQLite)
 // NOTE: specify the migrations assembly so EF knows where migrations live
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqliteOptions =>
-        {
-            sqliteOptions.MigrationsAssembly("Persistence"); // <-- set to your migrations project name
-        }));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 3. JWT Authentication (combined events + validation)
 var jwtSection = builder.Configuration.GetSection("Jwt");
@@ -118,11 +113,11 @@ var app = builder.Build();
 // 7. CORS & pipeline
 app.UseCors("AllowAll");
 
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+//}
 
 app.UseHttpsRedirection();
 
