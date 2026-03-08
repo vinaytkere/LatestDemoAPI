@@ -170,9 +170,4 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.MapGet("/testdb", async (AppDbContext db) =>
-{
-    return await db.Addresses.CountAsync();
-});
-
 app.Run();

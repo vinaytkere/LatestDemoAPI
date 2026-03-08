@@ -33,9 +33,12 @@ namespace Application.Features.Address.Queries
 
             var total = all.Count();
 
+            var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
+            var pageSize = request.PageSize <= 0 ? 10 : request.PageSize;
+
             var paged = all
-                .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToList();
 
             var dto = _mapper.Map<IEnumerable<AddressDto>>(paged);
