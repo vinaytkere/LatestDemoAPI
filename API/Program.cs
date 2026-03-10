@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+﻿using Application.Features.Address;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,24 +12,21 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
-// 2. Database context (SQLite)
-// NOTE: specify the migrations assembly so EF knows where migrations live
+// 2. Database context (SQL Server)
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(
+    options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqliteOptions =>
+        sqlOptions =>
         {
-            sqliteOptions.MigrationsAssembly("Persistence");
+            sqlOptions.MigrationsAssembly("Persistence");
         }));
 
-// 3. JWT Authentication (combined events + validation)
+// 3. JWT Authentication
 var jwtSection = builder.Configuration.GetSection("Jwt");
-Console.WriteLine("🔑 JWT Key: " + jwtSection["Key"]);
-Console.WriteLine("🔑 JWT Key Length: " + jwtSection["Key"]?.Length);
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        // 3a. Event handlers for custom 401/403 messages
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
@@ -55,7 +52,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
 
-        // 3b. How to validate incoming JWTs
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -64,13 +60,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtSection["Issuer"],
             ValidAudience = jwtSection["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection["Key"]!))
+            IssuerSigningKey =
+                new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(jwtSection["Key"]!))
         };
     });
 
 builder.Services.AddAuthorization();
 
-// 4. Swagger / OpenAPI (security definitions once)
+// 4. Swagger
 builder.Services.AddSwaggerGen(c =>
 {
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -80,7 +78,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter 'Bearer' [space] and then your token"
+        Description = "Enter 'Bearer' followed by your JWT token"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -100,11 +98,11 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // 5. AutoMapper, FluentValidation, MediatR
-builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddAutoMapper(typeof(AddressProfile));
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAddressCommandValidator>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateAddressCommand>());
 
-// 6. Scoped services & Identity
+// 6. Scoped services
 builder.Services.AddScoped<Seed>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -115,14 +113,11 @@ builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-// 7. CORS & pipeline
+// 7. Middleware pipeline
 app.UseCors("AllowAll");
 
-//if (app.Environment.IsDevelopment())
-//{
 app.UseSwagger();
 app.UseSwaggerUI();
-//}
 
 app.UseHttpsRedirection();
 
@@ -131,7 +126,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// 8. Seeding & Migrations
+// 8. Database Migration & Seeding
 using (var scope = app.Services.CreateScope())
 {
     var servicesProvider = scope.ServiceProvider;
@@ -142,7 +137,6 @@ using (var scope = app.Services.CreateScope())
     {
         db.Database.Migrate();
 
-        // Only seed if no users exist
         if (!db.Users.Any())
         {
             var admin = new User { UserName = "admin", Role = "Admin" };
@@ -156,7 +150,6 @@ using (var scope = app.Services.CreateScope())
             db.SaveChanges();
         }
 
-        // Only seed addresses if none exist
         if (!db.Addresses.Any())
         {
             var seed = servicesProvider.GetRequiredService<Seed>();
