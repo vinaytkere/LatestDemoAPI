@@ -11,6 +11,8 @@ namespace Application.Interfaces
             /// Retrieve an entity by its identifier.
             /// </summary>
             Task<T?> GetByIdAsync(Guid id);
+
+            Task<IEnumerable<T>> SearchByNameAsync(string name);
             /// <summary>
             /// Retrieve all entities.
             /// </summary>

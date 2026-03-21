@@ -98,7 +98,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // 5. AutoMapper, FluentValidation, MediatR
-builder.Services.AddAutoMapper(typeof(AddressProfile));
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<AddressProfile>());
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAddressCommandValidator>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateAddressCommand>());
 

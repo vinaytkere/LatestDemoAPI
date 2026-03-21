@@ -16,7 +16,19 @@ namespace Persistence.Repositories
             _context = context;
             _dbSet = _context.Set<T>();
         }
+        /// <summary>
+        /// searches for entities by name. Assumes the entity has a 'Name' property.
+        /// </summary>
+        public async Task<IEnumerable<T>> SearchByNameAsync(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return Enumerable.Empty<T>();
 
+            return await _dbSet
+                .Where(e => EF.Property<string>(e, "Name") != null &&
+                            EF.Property<string>(e, "Name").Contains(name))
+                .ToListAsync();
+        }
         /// <summary>
         /// Fetches an entity by its id.
         /// </summary>

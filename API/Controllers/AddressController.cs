@@ -54,7 +54,7 @@ namespace API.Controllers
             return result.IsSuccess ? NoContent() : NotFound(result.Error);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         /// <summary>
         /// Retrieves an address by id.
         /// </summary>
@@ -83,6 +83,12 @@ namespace API.Controllers
             };
 
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+        [HttpGet("{name}")]
+        public async Task<IActionResult> SearchByName(string name)
+        {
+            var result = await _mediator.Send(new SearchAddressByNameQuery(name));
             return Ok(result);
         }
     }

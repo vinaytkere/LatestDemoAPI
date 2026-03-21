@@ -17,16 +17,16 @@ namespace API.Controllers
             _mediator = mediator;
         }
 
-        [HttpPost("token")]
-        [AllowAnonymous]
-        /// <summary>
-        /// Generates a JWT token for valid login credentials.
-        /// </summary>
-        public async Task<IActionResult> GenerateToken(LoginCommand command)
-        {
-            var result = await _mediator.Send(command);
-            return result.IsSuccess ? Ok(result.Value) : Unauthorized(result.Error);
-        }
+        //[HttpPost("token")]
+        //[AllowAnonymous]
+        ///// <summary>
+        ///// Generates a JWT token for valid login credentials.
+        ///// </summary>
+        //public async Task<IActionResult> GenerateToken(LoginCommand command)
+        //{
+        //    var result = await _mediator.Send(command);
+        //    return result.IsSuccess ? Ok(result.Value) : Unauthorized(result.Error);
+        //}
 
         [HttpPost("register")]
         [AllowAnonymous]
@@ -37,6 +37,17 @@ namespace API.Controllers
         {
             var result = await _mediator.Send(command);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        }
+
+        [HttpPost("login")]
+        [AllowAnonymous]
+        /// <summary>
+        /// Generates a JWT token for valid login credentials.
+        /// </summary>
+        public async Task<IActionResult> GenerateToken(LoginCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return result.IsSuccess ? Ok(result) : Unauthorized(result.Error);
         }
     }
 }
