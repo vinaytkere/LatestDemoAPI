@@ -85,7 +85,7 @@ namespace API.Controllers
             var result = await _mediator.Send(query);
             return Ok(result);
         }
-        [HttpGet("{name}")]
+        [HttpGet("search/{name}")]
         public async Task<IActionResult> SearchByName(string name)
         {
             var result = await _mediator.Send(new SearchAddressByNameQuery(name));

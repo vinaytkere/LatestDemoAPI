@@ -24,9 +24,24 @@ namespace Persistence.Repositories
             if (string.IsNullOrWhiteSpace(name))
                 return Enumerable.Empty<T>();
 
+            var term = name.Trim().ToLower();
+
+            if (typeof(T) == typeof(Address))
+            {
+                var query = _context.Addresses
+                    .Where(a =>
+                        a.City.ToLower().Contains(term) ||
+                        a.State.ToLower().Contains(term) ||
+                        a.Country.ToLower().Contains(term) ||
+                        (a.LandMark != null && a.LandMark.ToLower().Contains(term)));
+
+                var results = await query.ToListAsync();
+                return results.Cast<T>();
+            }
+
             return await _dbSet
                 .Where(e => EF.Property<string>(e, "Name") != null &&
-                            EF.Property<string>(e, "Name").Contains(name))
+                            EF.Property<string>(e, "Name").ToLower().Contains(term))
                 .ToListAsync();
         }
         /// <summary>

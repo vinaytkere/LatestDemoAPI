@@ -1,4 +1,5 @@
-﻿using Application.Features.Address;
+﻿using Application.Common.Behaviors;
+using Application.Features.Address;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -101,6 +102,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<AddressProfile>());
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAddressCommandValidator>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateAddressCommand>());
+builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 // 6. Scoped services
 builder.Services.AddScoped<Seed>();
