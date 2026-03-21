@@ -9,13 +9,15 @@ namespace API.Controllers
     public class AddressController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly ICountryService _countryService;
 
         /// <summary>
         /// Injects the mediator instance.
         /// </summary>
-        public AddressController(IMediator mediator)
+        public AddressController(IMediator mediator, ICountryService countryService)
         {
             _mediator = mediator;
+            _countryService = countryService;
         }
 
         [HttpPost]
@@ -90,6 +92,13 @@ namespace API.Controllers
         {
             var result = await _mediator.Send(new SearchAddressByNameQuery(name));
             return Ok(result);
+        }
+
+        [HttpGet("countries")]
+        public async Task<IActionResult> GetCountries()
+        {
+            var countries = await _countryService.GetAllAsync();
+            return Ok(countries);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Application.Common.Behaviors;
 using Application.Features.Address;
 using Microsoft.AspNetCore.Identity;
+using Persistence.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,6 +110,7 @@ builder.Services.AddScoped<Seed>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<ICountryService, CountryService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
