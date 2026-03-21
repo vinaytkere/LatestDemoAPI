@@ -47,7 +47,7 @@ namespace API.Controllers
         public async Task<IActionResult> GenerateToken(LoginCommand command)
         {
             var result = await _mediator.Send(command);
-            return result.IsSuccess ? Ok(result.Value) : Unauthorized(result.Error);
+            return result.IsSuccess ? Ok(result) : Unauthorized(result.Error);
         }
     }
 }
